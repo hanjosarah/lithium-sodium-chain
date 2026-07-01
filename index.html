@@ -84,8 +84,13 @@
 
 <script>
 const QUARTERS = ['Q1','Q2','Q3','Q4'];
+// 各年份折线颜色（按用户指定 RGB）
 const YEAR_COLORS = {
-  '2022':'#9cc0e6','2023':'#5b8fce','2024':'#2a64a8','2025':'#144073','2026':'#07254a'
+  '2022':'rgb(228,232,233)',
+  '2023':'rgb(191,191,191)',
+  '2024':'rgb(120,138,146)',
+  '2025':'rgb(0,130,235)',
+  '2026':'rgb(0,210,109)'
 };
 
 // 数值格式化
@@ -171,7 +176,8 @@ function buildOption(cfg){
   const isPct = cfg.kind === 'percent';
   const valFmt = isPct ? fmtPct : fmtCount;
 
-  // 折线末端（右上）汇总标签
+  // 折线末端（右上）汇总标签：统一格式「标识,数值」
+  //   完整年份 → 标识为「2025年」；不足四季度的年份 → 标识为「2026Q1」
   function endLabelFormatter(p){
     const year = p.seriesName;
     const arr  = cfg.byYear[year];
@@ -179,19 +185,14 @@ function buildOption(cfg){
     const cnt = valid.length;                 // 该年有几个季度数据
     const lastVal = valid[valid.length-1];
     let sum = cfg.summary[year];
+    const vf = isPct ? fmtPct : fmtCount;     // 该图对应的数值格式
+    // 标识：完整年份用「YYYY年」，否则用「YYYYQn」（如 2026Q1）
+    const label = cnt < 4 ? year + 'Q' + cnt : year + '年';
 
     if(sum == null){
-      // 年度汇总缺失（如 2026）→ 显示最新季度值，并标注「(暂仅Q?)」与其它年份口径一致
-      const tag = cnt < 4 ? '(暂仅Q' + cnt + ')' : '';
-      if(cfg.summaryType === 'sum'){
-        return year + '\n' + fmtCount(lastVal) + (tag?'\n'+tag:'');
-      }
-      return year + '\n' + fmtPct(lastVal) + (tag?'\n'+tag:'');
+      return label + ',' + vf(lastVal);
     }
-    if(cfg.summaryType === 'sum'){
-      return year + '\n' + fmtCount(sum);
-    }
-    return year + '\n' + fmtPct(sum);
+    return label + ',' + vf(sum);
   }
 
   // 是否用自定义 graphic 末端标签：百分比图（数值密集重叠）或显式标记的图（如商用车 2026Q1 孤立点重叠）
@@ -283,14 +284,15 @@ function renderCustomLabels(chart, cfg){
     return { year:y, qIdx:idx, val:val };
   });
 
-  // 组装每个标签的文本（按图表类型选用销量/百分比格式，不再显示「合计/全年」字样）
+  // 组装每个标签的文本，统一格式「标识,数值」：
+  //   完整年份 → 标识为「2025年」；不足四季度的年份 → 标识为「2026Q1」
   function labelText(e){
     const cnt = e.qIdx + 1;
-    const tag = cnt < 4 ? ' (暂仅Q'+cnt+')' : '';
     const vf = cfg.kind === 'percent' ? fmtPct : fmtCount;
+    const label = cnt < 4 ? e.year + 'Q' + cnt : e.year + '年';
     const sum = cfg.summary[e.year];
-    if(sum != null) return e.year + ' ' + vf(sum) + tag;
-    return e.year + ' Q'+cnt+' ' + vf(e.val) + tag;
+    if(sum != null) return label + ',' + vf(sum);
+    return label + ',' + vf(e.val);
   }
 
   const LINE_H = 30;            // 标签垂直避让的最小行高（含两行文本）
