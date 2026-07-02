@@ -7,79 +7,275 @@
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
 <style>
   :root{
-    --bg:#f4f7fb; --card:#ffffff; --ink:#1f2d3d; --muted:#5a6b80;
-    --line:#e6ecf3; --accent:#154789;
+    --bg:#eef2f7;            /* 浅蓝灰背景（参考图风格）*/
+    --card:#ffffff;
+    --ink:#1f2d3d;
+    --muted:#6b7c92;
+    --line:#e6ecf3;
+    --accent:#154789;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
     font-family:"Microsoft YaHei","PingFang SC","Segoe UI",system-ui,sans-serif;
-    background:var(--bg); color:var(--ink);
+    background:var(--bg);
+    color:var(--ink);
     -webkit-font-smoothing:antialiased;
   }
+
+  /* 顶部横幅标题区 */
   header.app{
-    padding:26px 28px 18px;
-    border-bottom:1px solid var(--line);
-    background:linear-gradient(180deg,#fff,#fbfdff);
+    background:linear-gradient(90deg, rgb(0,130,235) 0%, rgb(0,210,109) 100%);
+    color:#fff;
+    padding:26px 36px 22px;
   }
-  header.app h1{ margin:0; font-size:22px; letter-spacing:.5px; }
-  header.app p{ margin:8px 0 0; color:var(--muted); font-size:13px; line-height:1.6; }
+  header.app .brand-row{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  header.app h1{
+    margin:0;
+    font-size:22px;
+    font-weight:700;
+    letter-spacing:.5px;
+    line-height:1.3;
+  }
+  header.app h1 .bracket{ font-weight:700; }   /* 【璞泰来】括号 */
+  header.app .sub-title{
+    color:rgba(255,255,255,.78);
+    font-size:12.5px;
+    margin:4px 0 0;
+  }
+  header.app .meta{
+    color:rgba(255,255,255,.7);
+    font-size:11.5px;
+    white-space:nowrap;
+  }
+  /* 标签 chips */
+  header.app .tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:16px;
+  }
+  header.app .tag{
+    background:rgba(255,255,255,.16);
+    border:1px solid rgba(255,255,255,.28);
+    color:#fff;
+    font-size:12px;
+    padding:5px 12px;
+    border-radius:16px;       /* 胶囊圆角 */
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    backdrop-filter:blur(2px);
+    cursor:pointer;
+    transition:background .15s, transform .1s;
+    user-select:none;
+  }
+  header.app .tag:hover{ background:rgba(255,255,255,.28); }
+  header.app .tag:active{ transform:scale(.96); }
+  /* 当前选中的 tag：实心高亮 */
+  header.app .tag.active{
+    background:#fff;
+    color:#154789;
+    border-color:#fff;
+    font-weight:700;
+  }
+  header.app .tag.active .num{ background:#154789; color:#fff; }
+  header.app .tag .num{
+    background:rgba(255,255,255,.25);
+    border-radius:50%;
+    width:16px; height:16px;
+    display:inline-flex;
+    align-items:center; justify-content:center;
+    font-size:10px;
+    font-weight:700;
+  }
 
-  main{ padding:22px 28px 40px; }
-  /* 横向滚动容器：并排三张图，总宽超出屏宽时出现下方拖拽条 */
-  .scroller{ overflow-x:auto; }
+  main{
+    padding:24px 32px 48px;
+    max-width:1680px;
+    margin:0 auto;
+    display:flex;
+    flex-direction:column;
+    gap:24px;                 /* 排与排之间的间距 */
+  }
+
+  /* 每排：两栏 grid 布局，卡片间留白 24px */
   .row{
-    display:flex; flex-direction:row; gap:22px; align-items:stretch;
-    width:max-content; min-width:100%;
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:24px;
   }
-  .card{
-    flex:0 0 720px;            /* 每张图固定加宽到 720px，不缩不伸 */
-    background:var(--card); border:1px solid var(--line);
-    border-radius:12px; padding:16px 18px 10px;
-    box-shadow:0 1px 3px rgba(20,40,80,.05);
-    display:flex; flex-direction:column;
-  }
-  .card h2{ margin:2px 2px 2px; font-size:16px; }
-  .card .sub{ margin:0 2px 8px; color:var(--muted); font-size:12px; }
-  .chart{ width:100%; height:520px; }
 
-  footer.notes{
-    margin-top:24px; padding:14px 18px; background:#fff;
-    border:1px dashed var(--line); border-radius:10px;
-    color:var(--muted); font-size:12.5px; line-height:1.7;
+  /* 卡片：白底、柔和阴影、圆角，参考图风格 */
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:20px 22px 14px;
+    box-shadow:0 4px 16px rgba(31,45,61,.06);
+    display:flex;
+    flex-direction:column;
+    transition:box-shadow .2s;
   }
-  footer.notes b{ color:var(--ink); }
+  .card:hover{ box-shadow:0 6px 22px rgba(31,45,61,.10); }
+
+  .card .head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:6px;
+  }
+  .card h2{
+    margin:0;
+    font-size:16px;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .card .sub{
+    margin:0;
+    color:var(--muted);
+    font-size:12px;
+  }
+  .chart{ width:100%; height:460px; }
+
+  /* 板块（panel）切换：默认隐藏，.active 显示 */
+  .panel{ display:none; }
+  .panel.active{ display:flex; flex-direction:column; gap:24px; }
+
+  /* 建设中占位卡片 */
+  .placeholder{
+    background:var(--card);
+    border:1px dashed #cdd9e5;
+    border-radius:14px;
+    padding:60px 24px;
+    text-align:center;
+    color:var(--muted);
+  }
+  .placeholder .ph-icon{ font-size:40px; opacity:.5; }
+  .placeholder .ph-title{ margin:14px 0 6px; font-size:16px; font-weight:700; color:var(--ink); }
+  .placeholder .ph-desc{ font-size:13px; line-height:1.7; }
 </style>
 </head>
 <body>
 
 <header class="app">
-  <h1>欧洲商用车数据 · 季度趋势</h1>
-  <p>数据来源：ACEA、璞泰来整理</p>
+  <div class="brand-row">
+    <div>
+      <h1><span class="bracket">【璞泰来】</span>锂电&amp;钠电产业链季度观察</h1>
+      <p class="sub-title">数据更新截至2026Q2</p>
+      <p class="sub-title">撰写成员：市场部——张飞虎、李逸竹、王瑜珊、冯铂健；投资部——周涵、邹辰颢</p>
+    </div>
+  </div>
+  <div class="tags">
+    <span class="tag" data-panel="panel-1"><span class="num">1</span>乘用车市场</span>
+    <span class="tag active" data-panel="panel-2"><span class="num">2</span>商用车市场</span>
+    <span class="tag" data-panel="panel-3"><span class="num">3</span>电池（动力、储能、消费）</span>
+    <span class="tag" data-panel="panel-4"><span class="num">4</span>上游材料&amp;设备</span>
+    <span class="tag" data-panel="panel-5"><span class="num">5</span>电芯&amp;材料价格</span>
+    <span class="tag" data-panel="panel-6"><span class="num">6</span>企业经营业绩</span>
+    <span class="tag" data-panel="panel-7"><span class="num">7</span>资本、扩产及经营动态</span>
+  </div>
 </header>
 
 <main>
-  <div class="scroller">
+  <!-- 板块1：乘用车市场 -->
+  <section class="panel" id="panel-1">
+    <div class="placeholder">
+      <div class="ph-icon">🚗</div>
+      <div class="ph-title">乘用车市场</div>
+      <div class="ph-desc">该板块正在建设中，敬请期待。<br>后续将呈现乘用车销量、电动化趋势等季度数据。</div>
+    </div>
+  </section>
+
+  <!-- 板块2：商用车市场（默认显示）-->
+  <section class="panel active" id="panel-2">
     <div class="row">
       <section class="card">
-        <h2>欧洲商用 EV 销量</h2>
-        <p class="sub">单位：万辆</p>
+        <div class="head">
+          <h2>欧洲商用 EV 销量（分季度）</h2>
+          <p class="sub">单位：万辆</p>
+        </div>
         <div id="chart-ev" class="chart"></div>
       </section>
 
       <section class="card">
-        <h2>欧洲商用车销量</h2>
-        <p class="sub">单位：万辆</p>
-        <div id="chart-cv" class="chart"></div>
-      </section>
-
-      <section class="card">
-        <h2>欧洲商用车电动化率</h2>
-        <p class="sub">单位：%</p>
+        <div class="head">
+          <h2>欧洲商用车电动化率（分季度）</h2>
+          <p class="sub">单位：%</p>
+        </div>
         <div id="chart-rate" class="chart"></div>
       </section>
     </div>
-  </div>
+
+    <div class="row">
+      <section class="card">
+        <div class="head">
+          <h2>欧洲商用 EV 销量（累计）</h2>
+          <p class="sub">单位：万辆</p>
+        </div>
+        <div id="chart-evCum" class="chart"></div>
+      </section>
+
+      <section class="card">
+        <div class="head">
+          <h2>欧洲商用车电动化率（累计）</h2>
+          <p class="sub">单位：%</p>
+        </div>
+        <div id="chart-rateCum" class="chart"></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- 板块3：电池 -->
+  <section class="panel" id="panel-3">
+    <div class="placeholder">
+      <div class="ph-icon">🔋</div>
+      <div class="ph-title">电池（动力、储能、消费）</div>
+      <div class="ph-desc">该板块正在建设中，敬请期待。<br>后续将呈现动力/储能/消费电池装机量及结构变化。</div>
+    </div>
+  </section>
+
+  <!-- 板块4：上游材料&设备 -->
+  <section class="panel" id="panel-4">
+    <div class="placeholder">
+      <div class="ph-icon">⚙️</div>
+      <div class="ph-title">上游材料&amp;设备</div>
+      <div class="ph-desc">该板块正在建设中，敬请期待。<br>后续将呈现正负极、电解液、隔膜及设备环节季度数据。</div>
+    </div>
+  </section>
+
+  <!-- 板块5：电芯&材料价格 -->
+  <section class="panel" id="panel-5">
+    <div class="placeholder">
+      <div class="ph-icon">💰</div>
+      <div class="ph-title">电芯&amp;材料价格</div>
+      <div class="ph-desc">该板块正在建设中，敬请期待。<br>后续将呈现电芯及上游材料价格走势。</div>
+    </div>
+  </section>
+
+  <!-- 板块6：企业经营业绩 -->
+  <section class="panel" id="panel-6">
+    <div class="placeholder">
+      <div class="ph-icon">📊</div>
+      <div class="ph-title">企业经营业绩</div>
+      <div class="ph-desc">该板块正在建设中，敬请期待。<br>后续将呈现产业链主要公司营收、利润等季度业绩。</div>
+    </div>
+  </section>
+
+  <!-- 板块7：资本、扩产及经营动态 -->
+  <section class="panel" id="panel-7">
+    <div class="placeholder">
+      <div class="ph-icon">📈</div>
+      <div class="ph-title">资本、扩产及经营动态</div>
+      <div class="ph-desc">该板块正在建设中，敬请期待。<br>后续将呈现融资、产能扩张及行业动态。</div>
+    </div>
+  </section>
 </main>
 
 <script>
@@ -134,18 +330,18 @@ function niceBounds(values, ticks){
 // summary 统一采用 Excel 的 TOTAL 行（销量表 TOTAL = Q1~Q4 之和；电动化率为比率 TOTAL）
 const CONFIGS = {
   ev: {
-    kind:'count', summaryType:'sum',
+    kind:'count', summaryType:'sum', showEndLabel:false, highlightYear:'2025',   // 标记 2025 各季度数据
     byYear:{
       '2022':[20151, 21009, 24119, 41076],
       '2023':[33543, 40014, 41286, 44330],
-      '2024':[35329, 37224, 30548, 47125],
+      '2024':[35329, 37224, 30548, 54098],
       '2025':[49050, 57561, 63717, 72429],
       '2026':[66748, null, null, null]
     },
-    summary:{ '2022':106355,'2023':159173,'2024':150226,'2025':242757 }
+    summary:{ '2022':106355,'2023':159173,'2024':157199,'2025':242757 }
   },
   cv: {
-    kind:'count', summaryType:'sum', customEndLabel:true,   // 2026Q1 孤立点与折线重叠，用自定义标签避让
+    kind:'count', summaryType:'sum', customEndLabel:true, showEndLabel:false,   // 第一排分季度图
     byYear:{
       '2022':[510971, 510416, 461579, 523893],
       '2023':[570424, 590596, 568529, 598112],
@@ -156,19 +352,76 @@ const CONFIGS = {
     summary:{ '2022':2006859,'2023':2327661,'2024':2438518,'2025':2244342 }
   },
   rate: {
-    kind:'percent', summaryType:'total',   // total = 使用 Excel 的全年 TOTAL
+    kind:'percent', summaryType:'total', showEndLabel:false, highlightYear:'2025',   // 标记 2025 各季度数据
     byYear:{
       '2022':[0.03943668035955074, 0.04116054355662832, 0.0522532437567567, 0.07840532322439887],
       '2023':[0.05880362677587198, 0.06775189808261485, 0.07261898689424814, 0.07411655342143278],
-      '2024':[0.05649638911810047, 0.055907505699790035, 0.05810123019103337, 0.07581241956241956],
+      '2024':[0.05649638911810047, 0.055907505699790035, 0.05810123019103337, 0.08703024453024454],
       '2025':[0.08916495789887004, 0.10078670395032892, 0.1174875076060701, 0.12470751096349633],
       '2026':[0.11802274591903132, null, null, null]
     },
     // 全年电动化率（Excel TOTAL）
     summary:{ '2022':0.052995751071699605,'2023':0.06838323965560276,
-              '2024':0.061605450523637716,'2025':0.10816399639627115 }
+              '2024':0.06446497421794713,'2025':0.10816399639627115 }
   }
 };
+
+// ============ 第二排：累计图 ============
+// 横坐标：Q1、Q1-Q2、Q1-Q3、Q1-Q4（逐季累计）
+const CUM_CATEGORIES = ['Q1','Q1-Q2','Q1-Q3','Q1-Q4'];
+
+// 计算逐季累计（前缀和）。销量表直接累加；返回 [Q1, Q1+Q2, Q1+Q2+Q3, ...]，遇 null 截止。
+function prefixSum(arr){
+  const out = []; let acc = 0;
+  for(let i=0;i<arr.length;i++){
+    if(arr[i]==null) break;     // 季度缺失则该年累计到此为止
+    acc += arr[i];
+    out.push(acc);
+  }
+  while(out.length < 4) out.push(null);   // 补齐到 4 个位置，便于折线对齐
+  return out;
+}
+
+// 由季度 config 生成累计 config（销量表）
+function makeCumCountCfg(baseCfg, opts){
+  opts = opts || {};
+  const byYear = {};
+  Object.keys(baseCfg.byYear).forEach(y => { byYear[y] = prefixSum(baseCfg.byYear[y]); });
+  return {
+    kind:'count', summaryType:'sum',
+    showEndLabel: opts.showEndLabel,            // 是否显示末端汇总
+    highlightYear: opts.highlightYear,          // 需常显数据标签的年份
+    categories: CUM_CATEGORIES,
+    byYear: byYear,
+    summary: {}
+  };
+}
+
+// 由 EV、商用车累计销量算出累计电动化率（= 累计 EV ÷ 累计商用车）
+function makeCumRateCfg(evCumByYear, cvCumByYear, opts){
+  opts = opts || {};
+  const byYear = {};
+  Object.keys(evCumByYear).forEach(y => {
+    const ev = evCumByYear[y], cv = cvCumByYear[y];
+    byYear[y] = ev.map((e,i) => (e!=null && cv[i]!=null && cv[i]!==0) ? e/cv[i] : null);
+  });
+  return {
+    kind:'percent', summaryType:'total',
+    showEndLabel: opts.showEndLabel,
+    highlightYear: opts.highlightYear,
+    categories: CUM_CATEGORIES,
+    byYear: byYear,
+    summary: {}
+  };
+}
+
+// 第二排累计图：去掉末端汇总，EV 累计和电动化率累计标记 2025 各节点
+const EV_CUM  = makeCumCountCfg(CONFIGS.ev,   { showEndLabel:false, highlightYear:'2025' });
+const CV_CUM  = makeCumCountCfg(CONFIGS.cv,   { showEndLabel:false });
+const RATE_CUM = makeCumRateCfg(EV_CUM.byYear, CV_CUM.byYear, { showEndLabel:false, highlightYear:'2025' });
+
+// 累计图用到的 config 集合
+const CUM_CONFIGS = { evCum: EV_CUM, cvCum: CV_CUM, rateCum: RATE_CUM };
 
 // 构造单张图的 ECharts option
 function buildOption(cfg){
@@ -195,35 +448,50 @@ function buildOption(cfg){
     return label + ',' + vf(sum);
   }
 
-  // 是否用自定义 graphic 末端标签：百分比图（数值密集重叠）或显式标记的图（如商用车 2026Q1 孤立点重叠）
-  const useCustomLabel = isPct || cfg.customEndLabel === true;
+  // 所有图统一用自定义 graphic 末端标签（带引导线避让），彻底避免内置 endLabel 的重影问题
+  const useCustomLabel = true;
 
-  const series = years.map(y => ({
-    name: y,
-    type: 'line',
-    data: cfg.byYear[y],
-    symbol: 'circle',
-    symbolSize: 9,
-    smooth: false,
-    connectNulls: false,
-    lineStyle:{ width:2.6, color: YEAR_COLORS[y] },
-    itemStyle:{ color: YEAR_COLORS[y] },
-    emphasis:{ focus:'series', scale:1.4 },
-    // 自定义标签的图关闭内置 endLabel，其余保留内置 endLabel
-    endLabel: useCustomLabel ? { show:false } : {
-      show:true,
-      valueAnimation:false,
-      distance:8,
-      color: YEAR_COLORS[y],
-      fontSize:12,
-      fontWeight:'bold',
-      formatter: endLabelFormatter
-    }
-  }));
+  const series = years.map(y => {
+    const isHighlight = cfg.highlightYear === y;   // 需常显数据标签的年份（如 2025）
+    return {
+      name: y,
+      type: 'line',
+      data: cfg.byYear[y],
+      symbol:'circle', symbolSize:9,
+      smooth:false, connectNulls:false,
+      lineStyle:{ width:2.6, color: YEAR_COLORS[y] },
+      itemStyle:{ color: YEAR_COLORS[y] },
+      emphasis:{ focus:'series', scale:1.4 },
+      // 高亮年份：常显每个季度数据点的数值标签
+      label: isHighlight ? {
+        show:true,
+        position:'top',
+        distance:6,
+        color: YEAR_COLORS[y],
+        fontSize:11, fontWeight:'bold',
+        formatter: function(p){
+          if(p.value==null) return '';
+          // 显示数值（沿用本图的格式）；销量/百分比由 valFmt 决定
+          return valFmt(p.value);
+        }
+      } : { show:false },
+      labelLayout: isHighlight ? { hideOverlap:false } : undefined,
+      endLabel: useCustomLabel ? { show:false } : {
+        show:true, valueAnimation:false, distance:8,
+        color: YEAR_COLORS[y], fontSize:12, fontWeight:'bold',
+        formatter: endLabelFormatter
+      }
+    };
+  });
 
   return {
     color: years.map(y => YEAR_COLORS[y]),
-    legend:{ top:6, data:years, itemWidth:14, itemHeight:8, textStyle:{color:'#5a6b80'} },
+    // 图例放底部（参考图风格）
+    legend:{
+      bottom:0, data:years,
+      itemWidth:16, itemHeight:8, itemGap:18,
+      textStyle:{ color:'#5a6b80', fontSize:12 }
+    },
     tooltip:{
       trigger:'item',
       backgroundColor:'rgba(255,255,255,0.97)',
@@ -231,18 +499,18 @@ function buildOption(cfg){
       borderWidth:1,
       textStyle:{ color:'#1f2d3d' },
       padding:[8,10],
-      // 例：66,748 辆，2026Q1
       formatter: function(p){
         if(p.value == null) return '';
         return valFmt(p.value) + '，' + p.seriesName + p.name;
       }
     },
-    grid:{ left:62, right:150, top:50, bottom:36 },
+    // grid 适配底部图例（bottom 留出图例空间），右侧无需大留白（已无末端标签）
+    grid:{ left:58, right:36, top:30, bottom:48 },
     xAxis:{
-      type:'category', data:QUARTERS, boundaryGap:false,
+      type:'category', data:(cfg.categories || QUARTERS), boundaryGap:false,
       axisTick:{ show:false },
-      axisLine:{ lineStyle:{ color:'#9fb0c3' } },
-      axisLabel:{ color:'#5a6b80' }
+      axisLine:{ lineStyle:{ color:'#d4dde6' } },
+      axisLabel:{ color:'#8a99ac', fontSize:11 }
     },
     yAxis:(function(){
       // 注意：niceBounds 必须在「与数据相同的单位（原始值）」上计算，
@@ -254,13 +522,15 @@ function buildOption(cfg){
       return {
         type:'value',
         min:b.min, max:b.max, interval:b.interval,
+        axisLine:{ show:false },
+        axisTick:{ show:false },
         axisLabel:{
-          color:'#5a6b80',
+          color:'#8a99ac', fontSize:11,
           formatter: isPct
-            ? (v => (v*100).toFixed(1) + '%')      // 原始小数 → 百分比
-            : (v => (v/10000).toFixed(1))          // 原始「辆」 → 万辆
+            ? (v => (v*100).toFixed(0) + '%')      // 原始小数 → 百分比
+            : (v => (v/10000).toFixed(0))          // 原始「辆」 → 万辆
         },
-        splitLine:{ lineStyle:{ color:'#eef2f7' } }
+        splitLine:{ lineStyle:{ color:'#eef2f7' } }   // 柔和水平网格线
       };
     })(),
     series: series
@@ -270,13 +540,14 @@ function buildOption(cfg){
 // 初始化三张图
 const charts = {};
 
-// 电动化率（百分比）图：末端汇总标签数值密集，内置 endLabel 会重叠。
-// 这里用自定义 graphic 元素手绘标签：把每个年份的末端点转成像素坐标，
-// 在垂直方向上做最小行高避让（保证不重叠），对偏离原位的标签画一条短引导线连接，
-// 引导线长度只够把标签分开、不会离折线太远。
+// 所有图统一用自定义 graphic 末端标签（带引导线避让），彻底避免内置 endLabel 的重影问题。
+// 算法：把每个年份末端点转成像素坐标，按 y 排序后做垂直避让，
+//       相邻标签保持最小行高 LINE_H；避让方向优先向下，若触底则改为向上；
+//       仅对「被推离原位」的标签画一条短引导线连接末端点，引导线不长、不杂乱。
 function renderCustomLabels(chart, cfg){
+  // 第一排（分季度）图不显示末端汇总标签（因为下面有累计图展示总量）；第二排（累计）图才显示
+  if(cfg.showEndLabel === false) return;
   const years = Object.keys(cfg.byYear).sort();
-  // 每个年份的末端（最后一个有效季度）数据坐标
   const ends = years.map(y => {
     const arr = cfg.byYear[y];
     let idx = -1, val = null;
@@ -284,8 +555,6 @@ function renderCustomLabels(chart, cfg){
     return { year:y, qIdx:idx, val:val };
   });
 
-  // 组装每个标签的文本，统一格式「标识,数值」：
-  //   完整年份 → 标识为「2025年」；不足四季度的年份 → 标识为「2026Q1」
   function labelText(e){
     const cnt = e.qIdx + 1;
     const vf = cfg.kind === 'percent' ? fmtPct : fmtCount;
@@ -295,26 +564,32 @@ function renderCustomLabels(chart, cfg){
     return label + ',' + vf(e.val);
   }
 
-  const LINE_H = 30;            // 标签垂直避让的最小行高（含两行文本）
-  const PAD_Y  = 12;            // 末端点像素坐标基础上，标签起始 y 偏移
-  const startX = QUARTERS.length - 1;   // 末端点 x 数据坐标（最后一个季度）
-  // 注意：2026 只有 Q1，其末端在 x=Q1 而非 Q4
+  const LINE_H = 26;            // 标签垂直避让的最小行高（保证不重叠）
+  const PAD_Y  = 10;            // 标签中心相对末端点的初始垂直偏移
 
-  // 先把每个末端点转成像素坐标，标签锚定在「末端点右侧偏下」
   const items = ends.map(e => {
-    // 该年份末端季度的 x 坐标
     const px = chart.convertToPixel({xAxisIndex:0, yAxisIndex:0}, [e.qIdx, e.val]);
-    return { year:e.year, text:labelText(e), px:px[0], py:px[1], qIdx:e.qIdx, val:e.val, color: YEAR_COLORS[e.year] };
-  });
+    // convertToPixel 在容器未渲染好时可能返回 null/NaN，此时跳过该图
+    if(!px || isNaN(px[0]) || isNaN(px[1])) return null;
+    return { year:e.year, text:labelText(e), px:px[0], py:px[1], color: YEAR_COLORS[e.year] };
+  }).filter(Boolean);
 
-  // 按 y 升序，做垂直避让：从上到下，每个标签顶部至少比上一个底部低 LINE_H
+  if(items.length === 0) return;   // 容器未就绪，放弃本次渲染
+
+  // 估算绘图区上下边界（用于触底反弹）
+  const height = chart.getHeight();
+  const bottomLimit = height - 26;   // 留一点底部边距
+
+  // 按 y 升序，做垂直避让
   items.sort((a,b) => a.py - b.py);
   let cursor = items[0].py + PAD_Y;
   items.forEach(it => {
-    if(it.py + PAD_Y < cursor){
-      it.labelY = cursor;             // 被迫下移 → 需要引导线
+    const want = it.py + PAD_Y;
+    if(want < cursor){
+      // 需要下移避让
+      it.labelY = Math.min(cursor, bottomLimit);
     }else{
-      it.labelY = it.py + PAD_Y;
+      it.labelY = want;
     }
     cursor = it.labelY + LINE_H;
   });
@@ -322,14 +597,14 @@ function renderCustomLabels(chart, cfg){
   // 生成 graphic 元素：每个标签 = 引导线（若偏离） + 文本块
   const graphics = [];
   items.forEach(it => {
-    const anchorX = it.px + 14;       // 文本左边缘锚点（末端点右侧）
-    const needLine = Math.abs(it.labelY - (it.py + PAD_Y)) > 2;
+    const anchorX = it.px + 12;       // 文本左边缘锚点（末端点右侧）
+    const needLine = Math.abs(it.labelY - (it.py + PAD_Y)) > 3;
     if(needLine){
-      // 引导线：从末端点 → 锚点附近，短折线
+      // 短引导线：末端点 → 文本锚点附近（折线，避免压到文字）
       graphics.push({
         type:'polyline',
-        shape:{ points:[ [it.px, it.py], [it.px+8, it.labelY-4], [anchorX-2, it.labelY-4] ] },
-        style:{ stroke: it.color, lineWidth:1, fill:'none', opacity:0.7 }
+        shape:{ points:[ [it.px, it.py], [it.px+6, it.labelY-3], [anchorX-2, it.labelY-3] ] },
+        style:{ stroke: it.color, lineWidth:1, fill:'none', opacity:0.65 }
       });
     }
     graphics.push({
@@ -343,25 +618,55 @@ function renderCustomLabels(chart, cfg){
   chart.setOption({ graphic: graphics });
 }
 
-['ev','cv','rate'].forEach(key => {
-  const el = document.getElementById('chart-' + key);
+// 统一处理两排图：第一排季度图 + 第二排累计图（已去掉中间商用车销量图）
+const ALL_CHARTS = [
+  { key:'ev',      cfg:CONFIGS.ev      },
+  { key:'rate',    cfg:CONFIGS.rate    },
+  { key:'evCum',   cfg:CUM_CONFIGS.evCum   },
+  { key:'rateCum', cfg:CUM_CONFIGS.rateCum }
+];
+
+ALL_CHARTS.forEach(item => {
+  const el = document.getElementById('chart-' + item.key);
   const c = echarts.init(el);
-  c.setOption(buildOption(CONFIGS[key]));
-  charts[key] = c;
-  // 需要自定义末端标签的图（百分比图、商用车销量图）启用 renderCustomLabels
-  if(CONFIGS[key].kind === 'percent' || CONFIGS[key].customEndLabel === true){
-    // convertToPixel 需在容器有尺寸后生效，用微延迟兜底
-    setTimeout(() => renderCustomLabels(c, CONFIGS[key]), 0);
-  }
+  c.setOption(buildOption(item.cfg));
+  charts[item.key] = c;
+  // 所有图统一用自定义末端标签（带引导线避让），convertToPixel 需容器有尺寸，用微延迟兜底
+  setTimeout(() => renderCustomLabels(c, item.cfg), 0);
 });
 
-// 自适应：resize 后需要重算自定义标签的像素坐标
+// 自适应：resize 后重算所有图的自定义标签像素坐标
 window.addEventListener('resize', () => {
-  Object.keys(charts).forEach(key => {
-    charts[key].resize();
-    if(CONFIGS[key].kind === 'percent' || CONFIGS[key].customEndLabel === true){
-      setTimeout(() => renderCustomLabels(charts[key], CONFIGS[key]), 0);
-    }
+  ALL_CHARTS.forEach(item => {
+    charts[item.key].resize();
+    setTimeout(() => renderCustomLabels(charts[item.key], item.cfg), 0);
+  });
+});
+
+// ===== tag 板块切换 =====
+// 点击 tag → 显示对应 panel、隐藏其它；高亮当前 tag；
+// 切换到含图表的 panel 时，对其中图表 resize（display:none 时尺寸为 0，切回需重算）。
+document.querySelectorAll('header.app .tag').forEach(tag => {
+  tag.addEventListener('click', () => {
+    const target = tag.getAttribute('data-panel');
+    // 切换 tag 高亮
+    document.querySelectorAll('header.app .tag').forEach(t => t.classList.remove('active'));
+    tag.classList.add('active');
+    // 切换 panel
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    const panel = document.getElementById(target);
+    if(panel) panel.classList.add('active');
+    // 切换到的 panel 若含图表，resize + 重绘标签
+    setTimeout(() => {
+      ALL_CHARTS.forEach(item => {
+        const el = document.getElementById('chart-' + item.key);
+        // 只 resize 当前可见 panel 内的图
+        if(el && panel && panel.contains(el)){
+          charts[item.key].resize();
+          renderCustomLabels(charts[item.key], item.cfg);
+        }
+      });
+    }, 0);
   });
 });
 </script>
